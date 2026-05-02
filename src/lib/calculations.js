@@ -1,36 +1,32 @@
-/**
- * Beregner total utskriftskostnad.
- *
- * @param {object} params
- * @param {number} params.filamentGrams     - Gram filament brukt
- * @param {number} params.filamentPricePerKg - Kilopris på filament (NOK)
- * @param {number} params.printHours        - Utskriftstid i timer
- * @param {number} params.electricityKwh    - Strømforbruk per time (kWh)
- * @param {number} params.electricityPrice  - Strømpris per kWh (NOK)
- * @param {number} params.failureRate       - Svinnfaktor 0–1 (f.eks. 0.05 = 5 %)
- * @param {number} params.markupPercent     - Påslag i prosent (f.eks. 20)
- * @returns {{ filamentCost, electricityCost, subtotal, withFailure, finalPrice }}
- */
-export function calculatePrintCost({
-  filamentGrams,
-  filamentPricePerKg,
-  printHours,
-  electricityKwh,
-  electricityPrice,
-  failureRate = 0,
-  markupPercent = 0,
-}) {
-  const filamentCost = (filamentGrams / 1000) * filamentPricePerKg
-  const electricityCost = printHours * electricityKwh * electricityPrice
-  const subtotal = filamentCost + electricityCost
-  const withFailure = subtotal / (1 - failureRate)
-  const finalPrice = withFailure * (1 + markupPercent / 100)
+export function calcMaterialCost(grams, pricePerKg) {
+  return (grams / 1000) * pricePerKg
+}
 
-  return {
-    filamentCost,
-    electricityCost,
-    subtotal,
-    withFailure,
-    finalPrice,
-  }
+export function calcElectricityCost(hours, watts, kwh) {
+  return hours * (watts / 1000) * kwh
+}
+
+export function calcDepreciation(hours, ratePerHour) {
+  return hours * ratePerHour
+}
+
+export function calcLaborCost(minutes, ratePerHour) {
+  return (minutes / 60) * ratePerHour
+}
+
+export function calcFailureBuffer(subtotal, percent) {
+  return subtotal * (percent / 100)
+}
+
+export function calcMargin(subtotal, percent) {
+  return subtotal * (percent / 100)
+}
+
+export function calcTotal(costs) {
+  return Object.values(costs).reduce((sum, v) => sum + (v || 0), 0)
+}
+
+export function calcSuggestedPrice(total, marginPercent) {
+  const m = Math.min(marginPercent, 99.99)
+  return total / (1 - m / 100)
 }
